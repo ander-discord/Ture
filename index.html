@@ -18,6 +18,7 @@
     <div id="chat-box">
         <input type="text" id="query" placeholder="Ask AI (e.g. 'Find Paris')" />
         <button onclick="askGemini()">Search</button>
+        <button onclick="trackUserLocation()">Track Location</button>
     </div>
 
     <script>
@@ -35,6 +36,55 @@
                 button.innerHTML = "🔄";
                 button.onclick = function () {
                     map.setView([0, 0], 2);
+                };
+                return button;
+            },
+        });
+
+        var TrackUserControl = L.Control.extend({
+            options: { position: "topleft" },
+
+            onAdd: function (map) {
+                var button = L.DomUtil.create("button", "custom-button");
+                button.innerHTML = "🢃";
+                button.onclick = function () {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            var lat = position.coords.latitude;
+                            var lon = position.coords.longitude;
+
+                            map.setView([lat, lon], 16);
+
+                            L.marker([lat, lon]).addTo(map)
+                                .bindPopup(`<b>Your Location</b><br>Lat: ${lat}, Lon: ${lon}`)
+                                .openPopup();
+
+                        }, function(error) {
+                            alert("Error: " + error.message);
+                        });
+                    } else {
+                        alert("Geolocation is not supported by this browser.");
+                    }
+                };
+                return button;
+            },
+        });
+
+        var GetCoordinates = L.Control.extend({
+            options: { position: "topleft" },
+
+            onAdd: function (map) {
+                var button = L.DomUtil.create("button", "custom-button");
+                button.innerHTML = "✦";
+                button.onclick = function () {
+                    if (navigator.geolocation) {
+                        var center = map.getCenter();
+                        var lat = center.lat;
+                        var lon = center.lng;
+
+                        console.log("Current Camera Coordinates: Lat: " + lat + ", Lon: " + lon);
+                        alert("Current Camera Coordinates: Lat: " + lat + ", Lon: " + lon);
+                    }
                 };
                 return button;
             },
@@ -82,6 +132,8 @@
         }
 
         map.addControl(new resetControl());
+        map.addControl(new TrackUserControl());
+        map.addControl(new GetCoordinates());
     </script>
 </body>
 </html>
