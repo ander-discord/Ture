@@ -1,0 +1,32 @@
+#map { 
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#chat-box {
+    position: absolute;
+    bottom: 10px; left: 10px;
+    background: white;
+    padding: 10px;
+    z-index: 1000;
+    border-radius: 5px;
+    font-size: 22px;
+    border: 1px solid #ccc; 
+}
+
+.custom-button {
+    background: white;
+    padding: 10px 15px; 
+    cursor: pointer;
+    border: 1px solid #ccc; 
+    border-radius: 5px;
+    font-size: 22px; 
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

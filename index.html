@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ture!</title>
+    <link rel="icon" href="https://images.emojiterra.com/twitter/v13.1/512px/1f4ab.png" type="image/png">
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <h2>Ture</h2>
+
+    <div id="map"></div>
+    <div id="chat-box">
+        <input type="text" id="query" placeholder="Ask AI (e.g. 'Find Paris')" />
+        <button onclick="askGemini()">Search</button>
+    </div>
+
+    <script>
+        var map = L.map('map').setView([0, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var resetControl = L.Control.extend({
+            options: { position: "topleft" },
+
+            onAdd: function (map) {
+                var button = L.DomUtil.create("button", "custom-button");
+                button.innerHTML = "🔄";
+                button.onclick = function () {
+                    map.setView([0, 0], 2);
+                };
+                return button;
+            },
+        });
+
+        async function askGemini() {
+            let query = document.getElementById("query").value;
+            document.getElementById("query").value = "Seraching...";
+            let aiResponse = await fetch(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDTFtjt6lrck-VjqT4DbdZbQ5dyRN4-GLA",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept-Language": "en"
+                    },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] }),
+                }
+            );
+
+            let aiData = await aiResponse.json();
+            let aiText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || "AI couldn't understand the query.";
+            
+            document.getElementById("query").value = query;
+
+            alert("AI: " + aiText);
+
+            let geoResponse = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=1&accept-language=en`
+            );
+
+            let geoData = await geoResponse.json();
+
+            if (geoData.length > 0) {
+                let { lat, lon, display_name } = geoData[0];
+
+                map.setView([lat, lon], 16);
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup(`<b>${display_name}</b><br>Lat: ${lat}, Lon: ${lon}`)
+                    .openPopup();
+            } else {
+                alert("Location not found!");
+            }
+        }
+
+        map.addControl(new resetControl());
+    </script>
+</body>
+</html>
